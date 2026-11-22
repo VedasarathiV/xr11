@@ -1,0 +1,465 @@
+/* ==========================================================================
+   xr11 — Design Tokens
+   --------------------------------------------------------------------------
+   Identity: "xr11 Graphite" — soft charcoal, crisp text and system blue. A calm,
+   macOS-friendly desktop tool: flat surfaces, a clear accent, no decoration
+   that competes with the download list.
+
+   Single source of truth for colour, type, spacing, radii, elevation, glass
+   materials and motion. Import once, before base.css:
+
+     import "./design/fonts.css";
+     import "./design/tokens.css";
+     import "./design/base.css";
+
+   Theme & accent are selected with attributes on <html>:
+
+     <html data-theme="dark" data-accent="steel" data-density="comfortable">
+
+     data-theme    dark | light                     (required; dark is default)
+     data-accent   steel | graphite | jade | crimson
+     data-density  comfortable | compact
+
+   Glass can be disabled with  <html class="no-blur">  (user setting, weak GPU,
+   remote desktop) and is disabled automatically under
+   `prefers-reduced-transparency: reduce` (see base.css).
+
+   Naming: --{group}-{role}[-{variant}]. Components must use *semantic*
+   tokens (e.g. --text-secondary, --surface-raised), never raw hex values.
+   Full documentation: docs/design-system.md
+   ========================================================================== */
+
+/* --------------------------------------------------------------------------
+   1. Theme-independent tokens
+   -------------------------------------------------------------------------- */
+:root {
+  /* ---- Typography ------------------------------------------------------ */
+  --font-sans: "Inter Variable", "Inter", "Segoe UI Variable Text", "Segoe UI",
+    system-ui, -apple-system, "Helvetica Neue", Arial, "Microsoft YaHei UI", "Microsoft YaHei",
+    "PingFang SC", "Noto Sans CJK SC", "Source Han Sans SC", sans-serif;
+  /* Display type is the UI sans: no decorative serif, consistent on every OS. */
+  --font-display: var(--font-sans);
+  --font-mono: "JetBrains Mono Variable", "JetBrains Mono", "Cascadia Mono",
+    ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+
+  /* Type scale (px — the UI is a dense desktop tool, sizes are absolute).  */
+  --text-2xs: 10px;   /* micro labels, kbd hints                            */
+  --text-xs: 11px;    /* section captions (caps), badges, status bar        */
+  --text-sm: 12px;    /* secondary row text, table header, tooltips         */
+  --text-base: 13px;  /* DEFAULT UI text: rows, menus, inputs, buttons      */
+  --text-md: 14px;    /* dialog body, emphasized rows                       */
+  --text-lg: 16px;    /* dialog titles                                      */
+  --text-xl: 22px;    /* page titles                                        */
+  --text-2xl: 30px;   /* hero numbers (speed readouts)                      */
+  --text-3xl: 38px;   /* marketing / onboarding                             */
+
+  --leading-none: 1;
+  --leading-tight: 1.14;
+  --leading-snug: 1.32;
+  --leading-normal: 1.5;
+
+  --weight-regular: 400;
+  --weight-medium: 500;
+  --weight-semibold: 600;
+  --weight-bold: 690;
+
+  --tracking-normal: -0.006em;
+  --tracking-tight: -0.016em;   /* 16–20px */
+  --tracking-display: -0.018em; /* ≥ 24px  */
+  --tracking-caps: 0.11em;      /* UPPERCASE captions — the crest's labels */
+
+  --font-features: "cv05" 1, "cv08" 1, "ss03" 1;
+  --font-features-num: "tnum" 1, "cv05" 1, "zero" 0;
+
+  /* ---- Spacing (4 px grid, 2 px half-steps for dense controls) ---------- */
+  --space-0: 0;
+  --space-px: 1px;
+  --space-0_5: 2px;
+  --space-1: 4px;
+  --space-1_5: 6px;
+  --space-2: 8px;
+  --space-2_5: 10px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 20px;
+  --space-6: 24px;
+  --space-8: 32px;
+  --space-10: 40px;
+  --space-12: 48px;
+  --space-16: 64px;
+
+  /* ---- Radii: tighter than before — a crest is cut, not moulded --------- */
+  --radius-xs: 3px;
+  --radius-sm: 5px;
+  --radius-md: 7px;
+  --radius-lg: 10px;
+  --radius-xl: 14px;
+  --radius-2xl: 20px;
+  --radius-full: 999px;
+
+  --radius-control: var(--radius-md);
+  --radius-row: var(--radius-md);
+  --radius-panel: var(--radius-lg);
+  --radius-dialog: var(--radius-xl);
+  --radius-menu: 9px;
+  --radius-menu-item: 5px;
+
+  /* ---- Layout metrics --------------------------------------------------- */
+  --titlebar-h: 44px;
+  --toolbar-h: 56px;
+  --sidebar-w: 248px;
+  --sidebar-w-collapsed: 60px;
+  --statusbar-h: 32px;
+  --window-gutter: 8px;
+  --table-header-h: 32px;
+  --control-h-xs: 22px;
+  --control-h-sm: 26px;
+  --control-h: 30px;
+  --control-h-lg: 36px;
+  --icon-xs: 14px;
+  --icon-sm: 16px;
+  --icon-md: 18px;
+  --icon-lg: 20px;
+  --icon-xl: 24px;
+
+  --row-h: 44px;
+  --row-h-comfortable: 44px;
+  --row-h-compact: 30px;
+
+  /* ---- Z-index ---------------------------------------------------------- */
+  --z-base: 0;
+  --z-raised: 1;
+  --z-sticky: 10;
+  --z-chrome: 20;
+  --z-sidebar: 30;
+  --z-modal-backdrop: 100;
+  --z-modal: 110;
+  --z-dropdown: 200;
+  --z-popover: 300;
+  --z-tooltip: 400;
+  --z-toast: 500;
+  --z-drag: 600;
+  --z-max: 1000;
+
+  /* ---- Motion ----------------------------------------------------------- */
+  --dur-instant: 80ms;
+  --dur-fast: 140ms;
+  --dur-base: 200ms;
+  --dur-slow: 320ms;
+  --dur-slower: 480ms;
+  --dur-progress: 250ms;
+  --dur-shimmer: 1.8s;
+  --dur-pulse: 2.4s;
+
+  --ease-standard: cubic-bezier(0.2, 0, 0, 1);
+  --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-in: cubic-bezier(0.4, 0, 1, 1);
+  --ease-in-out: cubic-bezier(0.65, 0, 0.35, 1);
+  --ease-spring: cubic-bezier(0.34, 1.36, 0.64, 1);
+  --ease-linear: linear;
+
+  /* ---- Blur levels (backdrop-filter) ------------------------------------ */
+  --blur-sm: 12px;
+  --blur-md: 24px;
+  --blur-lg: 40px;
+  --blur-xl: 64px;
+  --glass-saturate: 155%;
+
+  /* ---- Spectrum ----------------------------------------------------------
+     A cool monochrome ramp used for connection / segment bars
+     (connection n → --spectrum-n), never for generic UI chrome.            */
+  --spectrum-1: #c7d8ec;
+  --spectrum-2: #a9c3e0;
+  --spectrum-3: #8badd3;
+  --spectrum-4: #7097c3;
+  --spectrum-5: #5a82b0;
+  --spectrum-6: #476d99;
+  --spectrum-7: #375982;
+  --spectrum-8: #2a4668;
+  --gradient-prism: var(--accent-solid);
+  --gradient-brand: var(--accent);
+  --gradient-beam: linear-gradient(90deg, rgb(255 255 255 / 0) 0%, rgb(255 255 255 / 0.55) 100%);
+}
+
+:root[data-os="mac"] {
+  --font-sans: -apple-system, BlinkMacSystemFont, "Helvetica Neue", system-ui, sans-serif;
+  --font-display: var(--font-sans);
+}
+
+/* Density ------------------------------------------------------------------ */
+:root,
+[data-density="comfortable"] { --row-h: var(--row-h-comfortable); }
+[data-density="compact"] { --row-h: var(--row-h-compact); }
+
+/* --------------------------------------------------------------------------
+   2. DARK theme (default)
+   "xr11 Graphite": soft charcoal surfaces, crisp text, system blue accent.
+   -------------------------------------------------------------------------- */
+:root,
+[data-theme="dark"] {
+  color-scheme: dark;
+
+  --bg-canvas: #1c1c1e;
+  --ambient-1: transparent;
+  --ambient-2: transparent;
+  --ambient-3: transparent;
+  --bg-ambient: none;
+
+  /* Solid surfaces, ordered by elevation. */
+  --surface-sunken: #18181a;
+  --surface-base: #202023;
+  --surface-raised: #2c2c2e;
+  --surface-overlay: #38383a;
+  --surface-inverse: #f5f5f7;
+
+  --state-hover: rgb(255 255 255 / 0.045);
+  --state-pressed: rgb(255 255 255 / 0.08);
+  --state-selected: rgb(var(--accent-rgb) / 0.14);
+  --state-selected-hover: rgb(var(--accent-rgb) / 0.20);
+  --state-selected-border: rgb(var(--accent-rgb) / 0.34);
+  --state-disabled-opacity: 0.4;
+
+  /* Text — neutral cool ink, never tinted. */
+  --text-primary: #f5f5f7;
+  --text-secondary: #b8b8bd;
+  --text-tertiary: #929298;
+  --text-disabled: #636368;
+  --text-inverse: #141416;
+  --text-link: var(--accent);
+
+  --border-subtle: rgb(255 255 255 / 0.06);
+  --border-default: rgb(255 255 255 / 0.10);
+  --border-strong: rgb(255 255 255 / 0.17);
+  --border-focus: var(--accent);
+  --divider: rgb(255 255 255 / 0.055);
+
+  --control-bg: rgb(255 255 255 / 0.05);
+  --control-bg-hover: rgb(255 255 255 / 0.085);
+  --control-bg-pressed: rgb(255 255 255 / 0.12);
+  --control-border: rgb(255 255 255 / 0.08);
+  --input-bg: rgb(0 0 0 / 0.28);
+  --input-border: rgb(255 255 255 / 0.10);
+  --track-bg: rgb(255 255 255 / 0.08);
+  --switch-off: rgb(255 255 255 / 0.16);
+  --scrollbar-thumb: rgb(255 255 255 / 0.14);
+  --scrollbar-thumb-hover: rgb(255 255 255 / 0.24);
+  --scrim: rgb(4 5 7 / 0.64);
+
+  /* Semantic status colours (fixed — never follow the accent). */
+  --success: #4fbf8b;  --success-rgb: 79 191 139;
+  --warning: #e0904f;  --warning-rgb: 224 144 79;
+  --danger: #e5636b;   --danger-rgb: 229 99 107;
+  --info: #5aa9e6;     --info-rgb: 90 169 230;
+  --neutral: #7d8794;  --neutral-rgb: 125 135 148;
+
+  --status-downloading: var(--accent);
+  --status-completed: var(--success);
+  --status-paused: var(--warning);
+  --status-error: var(--danger);
+  --status-queued: var(--neutral);
+  --status-scheduled: var(--info);
+
+  /* File-type tints (icon tiles in the table) */
+  --type-video: #7f9fd8;
+  --type-audio: #c0849c;
+  --type-image: #4faf93;
+  --type-archive: #97a3b4;
+  --type-document: #5f93d1;
+  --type-program: #9aa3af;
+  --type-other: #737d89;
+
+  /* ---- Elevation ------------------------------------------------------- */
+  --shadow-1: 0 1px 2px rgb(0 0 0 / 0.4);
+  --shadow-2: 0 2px 5px rgb(0 0 0 / 0.34), 0 10px 24px -8px rgb(0 0 0 / 0.5);
+  --shadow-3: 0 5px 12px rgb(0 0 0 / 0.34), 0 20px 44px -12px rgb(0 0 0 / 0.66);
+  --shadow-4: 0 10px 24px rgb(0 0 0 / 0.4), 0 36px 88px -18px rgb(0 0 0 / 0.8);
+  --shadow-sheet: 0 0 0 1px rgb(255 255 255 / 0.05), 0 14px 38px -12px rgb(0 0 0 / 0.7);
+  --highlight-top: inset 0 1px 0 rgb(255 255 255 / 0.06);
+
+  /* ---- Glass: neutral smoked panels with a plain white rim ------------ */
+  --glass-tint: rgb(32 32 35 / 0.82);
+  --glass-tint-strong: rgb(44 44 46 / 0.94);
+  --glass-tint-subtle: rgb(36 36 38 / 0.70);
+  --glass-sheen: linear-gradient(180deg, rgb(255 255 255 / 0.05) 0%, rgb(255 255 255 / 0.01) 40%, rgb(255 255 255 / 0) 100%);
+  --glass-rim: linear-gradient(160deg,
+      rgb(255 255 255 / 0.18) 0%,
+      rgb(255 255 255 / 0.08) 24%,
+      rgb(255 255 255 / 0.03) 58%,
+      rgb(255 255 255 / 0.10) 100%);
+  --glass-highlight: inset 0 1px 0 rgb(255 255 255 / 0.06), inset 0 0 0 1px rgb(255 255 255 / 0.02);
+  --glass-shadow: 0 1px 1px rgb(0 0 0 / 0.3), 0 20px 54px -14px rgb(0 0 0 / 0.62);
+  --glass-caustic: none;
+  --glass-fallback: rgb(32 32 35 / 0.98);
+  --glass-fallback-strong: rgb(44 44 46 / 0.995);
+}
+
+/* --------------------------------------------------------------------------
+   3. LIGHT theme
+   "xr11 Graphite Light": soft system surfaces, ink typography, blue accent.
+   -------------------------------------------------------------------------- */
+[data-theme="light"] {
+  color-scheme: light;
+
+  --bg-canvas: #f5f5f7;
+  --ambient-1: transparent;
+  --ambient-2: transparent;
+  --ambient-3: transparent;
+  --bg-ambient: none;
+
+  --surface-sunken: #ededf0;
+  --surface-base: #ffffff;
+  --surface-raised: #f8f8fa;
+  --surface-overlay: #f0f0f4;
+  --surface-inverse: #1c1c1e;
+
+  --state-hover: rgb(16 20 26 / 0.045);
+  --state-pressed: rgb(16 20 26 / 0.08);
+  --state-selected: rgb(var(--accent-rgb) / 0.11);
+  --state-selected-hover: rgb(var(--accent-rgb) / 0.16);
+  --state-selected-border: rgb(var(--accent-rgb) / 0.30);
+  --state-disabled-opacity: 0.45;
+
+  --text-primary: #1c1c1e;
+  --text-secondary: #45454a;
+  --text-tertiary: #6e6e73;
+  --text-disabled: #a1a1a6;
+  --text-inverse: #ffffff;
+  --text-link: var(--accent);
+
+  --border-subtle: rgb(16 20 26 / 0.07);
+  --border-default: rgb(16 20 26 / 0.12);
+  --border-strong: rgb(16 20 26 / 0.20);
+  --border-focus: var(--accent);
+  --divider: rgb(16 20 26 / 0.08);
+
+  --control-bg: rgb(16 20 26 / 0.04);
+  --control-bg-hover: rgb(16 20 26 / 0.07);
+  --control-bg-pressed: rgb(16 20 26 / 0.11);
+  --control-border: rgb(16 20 26 / 0.09);
+  --input-bg: #ffffff;
+  --input-border: rgb(16 20 26 / 0.15);
+  --track-bg: rgb(16 20 26 / 0.08);
+  --switch-off: rgb(16 20 26 / 0.2);
+  --scrollbar-thumb: rgb(16 20 26 / 0.18);
+  --scrollbar-thumb-hover: rgb(16 20 26 / 0.3);
+  --scrim: rgb(12 16 22 / 0.28);
+
+  --success: #18864b;  --success-rgb: 24 134 75;
+  --warning: #a76500;  --warning-rgb: 167 101 0;
+  --danger: #d7373f;   --danger-rgb: 215 55 63;
+  --info: #0066cc;     --info-rgb: 0 102 204;
+  --neutral: #68727e;  --neutral-rgb: 104 114 126;
+
+  --type-video: #4a6ea8;
+  --type-audio: #9c4966;
+  --type-image: #0d7a60;
+  --type-archive: #5b6878;
+  --type-document: #2567c4;
+  --type-program: #4f5862;
+  --type-other: #6b7480;
+
+  --spectrum-1: #2a4668;
+  --spectrum-2: #375982;
+  --spectrum-3: #476d99;
+  --spectrum-4: #5a82b0;
+  --spectrum-5: #7097c3;
+  --spectrum-6: #8badd3;
+  --spectrum-7: #a9c3e0;
+  --spectrum-8: #c7d8ec;
+
+  --shadow-1: 0 1px 2px rgb(16 20 26 / 0.08);
+  --shadow-2: 0 1px 2px rgb(16 20 26 / 0.06), 0 7px 18px -5px rgb(16 20 26 / 0.12);
+  --shadow-3: 0 2px 7px rgb(16 20 26 / 0.06), 0 18px 40px -10px rgb(16 20 26 / 0.18);
+  --shadow-4: 0 4px 14px rgb(16 20 26 / 0.08), 0 30px 74px -16px rgb(16 20 26 / 0.26);
+  --shadow-sheet: 0 0 0 1px rgb(16 20 26 / 0.07), 0 10px 28px -12px rgb(16 20 26 / 0.16);
+  --highlight-top: inset 0 1px 0 rgb(255 255 255 / 0.9);
+
+  --glass-tint: rgb(250 251 252 / 0.72);
+  --glass-tint-strong: rgb(255 255 255 / 0.90);
+  --glass-tint-subtle: rgb(248 249 251 / 0.50);
+  --glass-sheen: linear-gradient(180deg, rgb(255 255 255 / 0.6) 0%, rgb(255 255 255 / 0.2) 40%, rgb(255 255 255 / 0.06) 100%);
+  --glass-rim: linear-gradient(160deg,
+      rgb(255 255 255 / 0.95) 0%,
+      rgb(16 20 26 / 0.10) 24%,
+      rgb(255 255 255 / 0.4) 60%,
+      rgb(16 20 26 / 0.07) 100%);
+  --glass-highlight: inset 0 1px 0 rgb(255 255 255 / 0.9), inset 0 0 0 1px rgb(16 20 26 / 0.04);
+  --glass-shadow: 0 1px 2px rgb(16 20 26 / 0.06), 0 16px 44px -14px rgb(16 20 26 / 0.2);
+  --glass-caustic: none;
+  --glass-fallback: rgb(248 249 251 / 0.99);
+  --glass-fallback-strong: #ffffff;
+}
+
+/* --------------------------------------------------------------------------
+   4. Accents
+   Each accent provides:
+     --accent          text / icon colour on the theme's surfaces (≥ 4.5:1)
+     --accent-rgb      triplet for translucent tints
+     --accent-solid    filled button / progress fill
+     --accent-solid-hover
+     --accent-contrast text on --accent-solid (≥ 4.5:1)
+     --accent-2        secondary stop for gradients
+   -------------------------------------------------------------------------- */
+
+/* Blue — the xr11 default accent, tuned for macOS contrast. */
+:root,
+[data-accent="steel"] {
+  --accent: #0a84ff; --accent-rgb: 10 132 255;
+  --accent-solid: #0066cc; --accent-solid-hover: #075fba; --accent-contrast: #ffffff;
+  --accent-2: #5e9ce6;
+}
+[data-theme="light"]:not([data-accent]),
+[data-theme="light"][data-accent="steel"] {
+  --accent: #0066cc; --accent-rgb: 0 102 204;
+  --accent-solid: #0066cc; --accent-solid-hover: #0058b3; --accent-contrast: #ffffff;
+  --accent-2: #3478c8;
+}
+
+/* Graphite — monochrome chrome, for people who want no colour at all. */
+[data-accent="graphite"] {
+  --accent: #c6ccd4; --accent-rgb: 198 204 212;
+  --accent-solid: #3a4149; --accent-solid-hover: #474f59; --accent-contrast: #ffffff;
+  --accent-2: #8b939e;
+}
+[data-theme="light"][data-accent="graphite"] {
+  --accent: #2b323a; --accent-rgb: 43 50 58;
+  --accent-solid: #2b323a; --accent-solid-hover: #1f252b; --accent-contrast: #ffffff;
+  --accent-2: #68727e;
+}
+
+/* Jade — a quiet green. */
+[data-accent="jade"] {
+  --accent: #6fd0aa; --accent-rgb: 111 208 170;
+  --accent-solid: #1d7d5f; --accent-solid-hover: #238c6b; --accent-contrast: #ffffff;
+  --accent-2: #5d9f8b;
+}
+[data-theme="light"][data-accent="jade"] {
+  --accent: #0a6b50; --accent-rgb: 10 107 80;
+  --accent-solid: #0a6b50; --accent-solid-hover: #075741; --accent-contrast: #ffffff;
+  --accent-2: #3d7a66;
+}
+
+/* Crimson — for people who prefer a warm accent. */
+[data-accent="crimson"] {
+  --accent: #e79aa5; --accent-rgb: 231 154 165;
+  --accent-solid: #a83a4c; --accent-solid-hover: #bb4356; --accent-contrast: #ffffff;
+  --accent-2: #b57d86;
+}
+[data-theme="light"][data-accent="crimson"] {
+  --accent: #9e2e3f; --accent-rgb: 158 46 63;
+  --accent-solid: #9e2e3f; --accent-solid-hover: #872536; --accent-contrast: #ffffff;
+  --accent-2: #8f5b63;
+}
+
+/* Derived accent tokens (same formula for every accent / theme). */
+:root,
+[data-theme],
+[data-accent] {
+  --accent-soft: rgb(var(--accent-rgb) / 0.15);
+  --accent-softer: rgb(var(--accent-rgb) / 0.08);
+  --accent-border: rgb(var(--accent-rgb) / 0.38);
+  --accent-glow: 0 0 0 1px rgb(var(--accent-rgb) / 0.38), 0 0 18px -2px rgb(var(--accent-rgb) / 0.6);
+  --focus-ring: 0 0 0 2px var(--surface-base), 0 0 0 4px rgb(var(--accent-rgb) / 0.8);
+  --gradient-accent: var(--accent-solid);
+  --progress-fill: var(--accent-solid);
+}

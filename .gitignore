@@ -1,0 +1,17 @@
+/target
+**/node_modules
+**/dist
+/app/src-tauri/gen
+/app/src-tauri/target
+/extension/build
+/packaging/out
+*.prismpart
+.DS_Store
+Thumbs.db
+/.vite
+*.log
+/dist-release
+/app/src-tauri/binaries
+/release/*.app
+/release/*.dmg
+/.freebuff/
