@@ -152,6 +152,7 @@ impl Core {
         let db = Db::open(&opts.data_dir.join("prism.db")).context("open database")?;
         restrict_permissions(&opts.data_dir);
 
+        #[cfg_attr(not(target_os = "macos"), allow(unused_mut))]
         let mut settings: Settings = db
             .get_setting("settings")?
             .and_then(|s| serde_json::from_str(&s).ok())
