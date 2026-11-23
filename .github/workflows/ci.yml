@@ -44,7 +44,9 @@ jobs:
         with:
           node-version: 24
       - name: Rust tests (engine, core, video, torrent, native host)
-        run: cargo test --workspace --exclude prism-app
+        # Manager integration tests use local HTTP/FTP servers. Running their harness in
+        # parallel can starve pause/resume checks on macOS runners and create false failures.
+        run: cargo test --workspace --exclude prism-app -- --test-threads=1
       - name: Frontend deps
         run: |
           npm ci --prefix app

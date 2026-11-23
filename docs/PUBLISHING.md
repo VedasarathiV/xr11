@@ -1,20 +1,21 @@
 # Publishing the xr11 website
 
-The website source is in `site/`. The workflow in
-`.github/workflows/pages.yml` builds a Pages artifact from that folder and deploys it.
+The website source is in `site/`. The checked-in Pages workflow belongs to the upstream
+`FortoGraphy/prism-download-manager` site, whose custom domain and badge data are configured
+there. It is intentionally skipped in personal copies of this repository.
 
-## Enable GitHub Pages
+## Publish a separate site from this repository
 
-The workflow currently fails at `actions/configure-pages` if Pages has not been enabled for the
-repository. Enable it once as a repository administrator:
+If you want to publish this copy's `site/` folder, first replace the upstream `site/CNAME` with
+your own domain (or remove it), then enable Pages as a repository administrator:
 
 1. Open the repository's **Settings → Pages**.
 2. Under **Build and deployment**, set **Source** to **GitHub Actions**.
-3. Re-run the failed **Website (GitHub Pages)** workflow, or push a change under `site/`.
+3. Add a workflow configured for this repository and domain, then run it.
 
-The workflow's `GITHUB_TOKEN` can deploy after Pages is enabled; it cannot enable Pages itself.
-The `actions/configure-pages` action supports automatic enablement only when given a separate
-token with repository Pages administration access. Do not commit a token into the repository.
+GitHub's `actions/configure-pages` needs a separately authorized token to enable Pages
+automatically; the default `GITHUB_TOKEN` can deploy after Pages is enabled, but cannot enable it.
+Do not commit a token into the repository.
 
 ## Repository About details
 

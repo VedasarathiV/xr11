@@ -418,12 +418,11 @@ impl Core {
         // A link to a file page downloads the file itself instead of the page.
         if n.kind.is_none() && is_get(&n) {
             let server = crate::huggingface::endpoint(&self.settings().hugging_face);
-            match crate::huggingface::parse(&n.url, &server) {
-                Some(crate::huggingface::Link::FilePage(file)) => {
-                    n.url = file;
-                    probed = None;
-                }
-                _ => {}
+            if let Some(crate::huggingface::Link::FilePage(file)) =
+                crate::huggingface::parse(&n.url, &server)
+            {
+                n.url = file;
+                probed = None;
             }
         }
         // A typed or copied link to a video page (YouTube, Vimeo, ...) gets the quality

@@ -92,10 +92,10 @@ fn players(path: &Path, volume: f32) -> Vec<(&'static str, Vec<String>)> {
     let file = path.to_string_lossy().into_owned();
     #[cfg(target_os = "macos")]
     {
-        return vec![(
+        vec![(
             "/usr/bin/afplay",
             vec!["-v".into(), format!("{volume:.2}"), file],
-        )];
+        )]
     }
     #[cfg(target_os = "linux")]
     vec![

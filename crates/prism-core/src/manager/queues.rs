@@ -420,10 +420,10 @@ impl Core {
             } else {
                 s.sounds.on_queue_done.then_some("queue")
             };
-            if s.sounds.enabled {
-                if let Some(kind) = sound_kind {
-                    self.emit(CoreEvent::PlaySound { kind: kind.into() });
-                }
+            if s.sounds.enabled
+                && let Some(kind) = sound_kind
+            {
+                self.emit(CoreEvent::PlaySound { kind: kind.into() });
             }
             if q.schedule.enabled || q.schedule.on_complete != PostAction::None {
                 self.run_post_action(q.schedule.on_complete.clone());
