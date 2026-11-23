@@ -31,13 +31,24 @@ export interface VideoOptionsResult {
   pageUrl?: string;
   title?: string;
   options: VideoOption[];
+  /** The scanned video is DRM-protected; do not offer download actions for it. */
+  drmProtected?: boolean;
+  /** A manifest could not be checked, so avoid offering a download action for it. */
+  protectionUnverified?: boolean;
   notice?: string;
+}
+
+export interface MediaProtectionResult {
+  key: string;
+  checked: boolean;
+  drmProtected: boolean;
 }
 
 export type InternalMessage =
   | { kind: 'bypass'; url?: string; ts: number }
   | { kind: 'videoOptions'; pageUrl: string; title: string; sources?: ElementSource[]; postUrl?: string }
   | { kind: 'videoDownload'; pageUrl: string; title: string; option: VideoOption }
+  | { kind: 'scanMediaProtection'; tabId: number }
   | { kind: 'popupState'; tabId: number }
   | { kind: 'refreshStatus' }
   | { kind: 'downloadMedia'; tabId: number; key: string }

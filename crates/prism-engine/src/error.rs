@@ -189,6 +189,12 @@ impl EngineError {
             EngineError::Hls { message } => format!("Could not download the HLS stream: {message}."),
             EngineError::Dash { message } => format!("Could not download the DASH stream: {message}."),
             EngineError::Remux { message } => format!("Could not merge the video: {message}."),
+            EngineError::Unsupported { message }
+                if message.to_ascii_lowercase().contains("drm")
+                    || message.to_ascii_lowercase().contains("contentprotection") =>
+            {
+                "This stream uses DRM protection, which XR11 can't download. Check the streaming service's app for an official offline download option.".into()
+            }
             EngineError::Unsupported { message } => format!("This download is not supported: {message}."),
             EngineError::InvalidResumeState { message } => {
                 format!("The saved download state is not usable ({message}); restart the download.")

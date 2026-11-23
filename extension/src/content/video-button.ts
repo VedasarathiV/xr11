@@ -141,6 +141,7 @@ export class VideoButton {
   private restPrefetch: Promise<void> | undefined;
   private observer: MutationObserver | null = null;
   private cache = new Map<string, { at: number; res: Promise<VideoOptionsResult | undefined> }>();
+  private blockedVideos = new WeakMap<HTMLVideoElement, string>();
   private scanQueued = false;
   /** The video under the last right-click (for the context menu's "Download with xr11"). */
   private contextVideo: { v: HTMLVideoElement; at: number } | null = null;
@@ -274,7 +275,7 @@ export class VideoButton {
     this.pill.addEventListener('click', (e) => {
       e.preventDefault();
       e.stopPropagation();
-      if (!e.isTrusted) return;
+      if (!e.isTrusted || this.pill.disabled) return;
       void this.toggleMenu();
     });
     this.pill.addEventListener('pointerenter', (e) => {
@@ -328,6 +329,7 @@ export class VideoButton {
     const ordered = this.current ? [this.current, ...this.visible] : this.visible;
     for (const v of ordered) {
       if (!v.isConnected) continue;
+      if (this.isBlocked(v)) continue;
       const t = targetOf(v);
       if (!t) continue;
       const r = t.getBoundingClientRect();
@@ -346,6 +348,7 @@ export class VideoButton {
   }
 
   private show(v: HTMLVideoElement): void {
+    if (this.isBlocked(v)) return;
     const fs = document.fullscreenElement;
     if (fs && fs.tagName === 'VIDEO') return; // can't overlay a fullscreen <video>
     this.ensureHost();
@@ -356,13 +359,33 @@ export class VideoButton {
     // time, as scrolling a feed under a resting pointer would start one per video.
     clearTimeout(this.prefetchTimer);
     this.prefetchTimer = setTimeout(() => {
-      if (this.current !== v || this.restPrefetch) return;
-      const done = () => {
-        this.restPrefetch = undefined;
+      if (this.current !== v) return;
+      const start = () => {
+        if (this.current !== v) return;
+        const contextKey = this.context(v).key;
+        const done = () => {
+          this.restPrefetch = undefined;
+        };
+        this.restPrefetch = this.options().then((res) => {
+          const best = this.bestTarget(this.context(v));
+          const blocked = !!res && (res.drmProtected || res.protectionUnverified || (!res.options.length && !best));
+          if (blocked && this.current === v && this.context(v).key === contextKey) {
+            this.blockedVideos.set(v, contextKey);
+            if (!this.menuOpen) this.hide(true);
+          } else if (this.current === v && this.context(v).key === contextKey) {
+            this.pill.disabled = false;
+            this.pill.title = 'Download this video with xr11';
+            this.pill.querySelector('.label')!.textContent = 'Download';
+          }
+        }).then(done, done);
       };
-      this.restPrefetch = this.options().then(done, done);
+      if (this.restPrefetch) void this.restPrefetch.then(start);
+      else start();
     }, 400);
     this.resetPill();
+    this.pill.disabled = true;
+    this.pill.title = 'Checking whether this video can be downloaded';
+    this.pill.querySelector('.label')!.textContent = 'Checking…';
     this.position();
     this.wrap.classList.add('show');
   }
@@ -435,7 +458,7 @@ export class VideoButton {
   openForContextMenu(): boolean {
     const c = this.contextVideo;
     this.contextVideo = null;
-    if (!this.enabled || !c || Date.now() - c.at > 60_000 || !c.v.isConnected || !targetOf(c.v)) return false;
+    if (!this.enabled || !c || Date.now() - c.at > 60_000 || !c.v.isConnected || !targetOf(c.v) || this.isBlocked(c.v)) return false;
     const fs = document.fullscreenElement;
     if (fs && fs.tagName === 'VIDEO') return false;
     this.hide(true);
@@ -460,8 +483,7 @@ export class VideoButton {
 
   // ---- menu ----------------------------------------------------------------------
 
-  private context(): { pageUrl: string; title: string; sources: ElementSource[]; postUrl?: string; key: string } {
-    const v = this.current;
+  private context(v = this.current): { pageUrl: string; title: string; sources: ElementSource[]; postUrl?: string; key: string } {
     const src = v?.currentSrc || v?.src || '';
     const title = (IS_YOUTUBE ? document.title.replace(/ - YouTube$/, '') : document.title) || location.hostname;
     const pageUrl = location.href;
@@ -478,7 +500,11 @@ export class VideoButton {
         )
       : [];
     const post = v ? postUrlOf(v, pageUrl) : undefined;
-    return { pageUrl, title, sources, ...(post ? { postUrl: post } : {}), key: `${pageUrl}|${post ?? ''}|${src}` };
+    return { pageUrl, title, sources, ...(post ? { postUrl: post } : {}), key: JSON.stringify([pageUrl, post ?? '', src, sources.map((s) => s.url)]) };
+  }
+
+  private isBlocked(v: HTMLVideoElement): boolean {
+    return this.blockedVideos.get(v) === this.context(v).key;
   }
 
   private options(): Promise<VideoOptionsResult | undefined> {
@@ -503,6 +529,7 @@ export class VideoButton {
     this.menuOpen = false;
     this.menu.classList.remove('open');
     this.pill.setAttribute('aria-expanded', 'false');
+    if (this.current && this.isBlocked(this.current)) this.wrap.classList.remove('show');
   }
 
   private async toggleMenu(): Promise<void> {
@@ -516,26 +543,19 @@ export class VideoButton {
     this.position();
     const ctx = this.context();
     this.menu.innerHTML = `<div class="loading"><span class="spin"></span>Finding qualities…</div>`;
-    // On a video site's single post / video page "Best quality" works right away: the app picks
-    // the best format (within the preferred quality) once it has read the page.
+    // On a single video page the app can offer "Best quality", but wait for the scan first so
+    // a DRM-protected item never briefly exposes a download action.
     const best = this.bestTarget(ctx);
-    if (best) {
-      this.menu.insertAdjacentHTML(
-        'beforeend',
-        `<button class="item" role="menuitem" data-id="best"><span class="ic">${icons.film(18)}</span><span class="tx"><span class="l">Best quality</span><span class="d">Download now, without waiting for the list</span></span><span class="go">${icons.download(16)}</span></button>`,
-      );
-      this.menu.querySelector<HTMLButtonElement>('.item[data-id="best"]')!.addEventListener('click', (e) => {
-        e.stopPropagation();
-        if (!e.isTrusted) return;
-        void this.choose({ id: 'fmt:best', label: 'Best quality', group: 'video', formatId: 'best' }, ctx.title, best);
-      });
-    }
     const res = await this.options();
     if (!this.menuOpen) return;
-    this.renderMenu(ctx.title, res);
+    const blocked = !!res && (res.drmProtected || res.protectionUnverified || (!res.options.length && !best));
+    if (blocked && this.current && this.context(this.current).key === ctx.key) {
+      this.blockedVideos.set(this.current, ctx.key);
+    }
+    this.renderMenu(ctx.title, res, best);
   }
 
-  private renderMenu(title: string, res: VideoOptionsResult | undefined): void {
+  private renderMenu(title: string, res: VideoOptionsResult | undefined, best?: string): void {
     const head = `<div class="head">${xr11Mark(18)}<span class="t">${esc(res?.title || title)}</span><span class="src">${res?.source === 'probe' ? 'xr11' : 'Detected'}</span></div>`;
     if (!res) {
       this.menu.innerHTML = `${head}<div class="note">xr11 extension is restarting — try again in a moment.</div>`;
@@ -550,7 +570,12 @@ export class VideoButton {
     ];
     let html = head;
     if (res.notice) html += `<div class="note">${esc(res.notice)}</div>`;
-    if (!res.options.length) {
+    if (!res.drmProtected && !res.protectionUnverified && best) {
+      html += `<button class="item" role="menuitem" data-id="__best"><span class="ic">${icons.film(18)}</span><span class="tx"><span class="l">Best quality</span><span class="d">Download now, without waiting for the list</span></span><span class="go">${icons.download(16)}</span></button>`;
+    }
+    if (res.protectionUnverified) {
+      html += `<div class="empty">This stream could not be checked, so no download button is available.</div>`;
+    } else if (!res.drmProtected && !res.options.length) {
       html += `<div class="empty">No downloadable stream found yet — start playback and try again.</div>`;
     }
     for (const [g, label] of groups) {
@@ -567,13 +592,17 @@ export class VideoButton {
       btn.addEventListener('click', (e) => {
         e.stopPropagation();
         if (!e.isTrusted) return;
+        if (btn.dataset.id === '__best' && best) {
+          void this.choose({ id: 'fmt:best', label: 'Best quality', group: 'video', formatId: 'best' }, res.title || title, best);
+          return;
+        }
         const opt = res.options.find((o) => o.id === btn.dataset.id);
         if (opt) void this.choose(opt, res.title || title, opt.formatId ? res.pageUrl : undefined);
       });
     });
   }
 
-  /** Where "Best quality" can go before the list is in: a video site's single post or video page. */
+  /** Where the single-video "Best quality" action can resolve. */
   private bestTarget(c: { pageUrl: string; postUrl?: string }): string | undefined {
     const page = c.postUrl ?? (postUrl(c.pageUrl, c.pageUrl) ? c.pageUrl : undefined);
     return page && this.videoSites.some((s) => siteMatches(page, s)) ? page : undefined;

@@ -303,6 +303,14 @@ pub(crate) fn list_variants(text: &str, url: &Url) -> Result<Vec<super::Variant>
         [] => return Err(dash_err("manifest has no period")),
         _ => return Err(unsupported("multi-period DASH manifests")),
     };
+    if period
+        .adaptations
+        .iter()
+        .flat_map(|a| a.representations.iter().map(move |r| (a, r)))
+        .any(|(a, r)| is_protected(a, r))
+    {
+        return Err(unsupported("DRM-protected DASH (ContentProtection)"));
+    }
     let video: Vec<(&AdaptationSet, &Representation)> = period
         .adaptations
         .iter()

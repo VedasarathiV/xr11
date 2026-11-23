@@ -1090,5 +1090,7 @@
   "Open a source, copy a direct file download link, then add it here.": "打开来源，复制文件的直接下载链接，然后在此添加。",
   "Direct model file URL": "模型文件直接链接",
   "Add model link": "添加模型链接",
-  "Direct model files are grouped under AI models. Kaggle may ask for account credentials. Ollama model names are installed with ollama pull; xr11 downloads files but does not run models.": "直接下载的模型文件会归入“AI 模型”。Kaggle 可能需要账户凭据。Ollama 模型请使用 ollama pull 安装；xr11 只下载文件，不运行模型。"
+  "Direct model files are grouped under AI models. Kaggle may ask for account credentials. Ollama model names are installed with ollama pull; xr11 downloads files but does not run models.": "直接下载的模型文件会归入“AI 模型”。Kaggle 可能需要账户凭据。Ollama 模型请使用 ollama pull 安装；xr11 只下载文件，不运行模型。",
+  "This video is protected with DRM.": "此视频受 DRM 保护。",
+  "XR11 can't download DRM-protected videos. Check the streaming service's app for an official offline download option.": "XR11 无法下载受 DRM 保护的视频。请查看流媒体服务的应用是否提供官方离线下载选项。"
 }

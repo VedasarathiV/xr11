@@ -1136,5 +1136,7 @@
   "Open a source, copy a direct file download link, then add it here.": "Apri una fonte, copia un link diretto per scaricare il file e aggiungilo qui.",
   "Direct model file URL": "URL diretta del file del modello",
   "Add model link": "Aggiungi link del modello",
-  "Direct model files are grouped under AI models. Kaggle may ask for account credentials. Ollama model names are installed with ollama pull; xr11 downloads files but does not run models.": "I file dei modelli scaricati direttamente vengono raggruppati in Modelli AI. Kaggle potrebbe richiedere le credenziali dell’account. I modelli Ollama si installano con ollama pull; xr11 scarica i file ma non esegue i modelli."
+  "Direct model files are grouped under AI models. Kaggle may ask for account credentials. Ollama model names are installed with ollama pull; xr11 downloads files but does not run models.": "I file dei modelli scaricati direttamente vengono raggruppati in Modelli AI. Kaggle potrebbe richiedere le credenziali dell’account. I modelli Ollama si installano con ollama pull; xr11 scarica i file ma non esegue i modelli.",
+  "This video is protected with DRM.": "Questo video è protetto da DRM.",
+  "XR11 can't download DRM-protected videos. Check the streaming service's app for an official offline download option.": "XR11 non può scaricare video protetti da DRM. Controlla se l’app del servizio streaming offre un’opzione ufficiale per il download offline."
 }

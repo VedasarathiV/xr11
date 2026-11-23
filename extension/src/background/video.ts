@@ -1,7 +1,7 @@
 /** Floating video button + popup media actions. */
 import type { NativeError } from '../shared/correlator';
 import { type ElementSource, type MediaItem, elementMedia, mediaDetail, mediaLabel, visibleMedia } from '../shared/media';
-import type { VideoOption, VideoOptionsResult } from '../shared/messages';
+import type { MediaProtectionResult, VideoOption, VideoOptionsResult } from '../shared/messages';
 import type { VideoRequest, VideoStream } from '../shared/protocol';
 import { siteMatches } from '../shared/rules';
 import { variantOptions } from '../shared/variants';
@@ -33,15 +33,27 @@ const option = (m: MediaItem, group: VideoOption['group']): VideoOption => ({ id
  *  the menu waits for them, and a slow or failing one keeps its single entry. */
 const EXPAND_MAX = 4;
 const EXPAND_TIMEOUT_MS = 3000;
+const POPUP_PROTECTION_SCAN_MAX = 8;
+
+interface ExpandedStream {
+  options: VideoOption[];
+  checked: boolean;
+  drmProtected: boolean;
+}
+
+function isDrmError(error: unknown): boolean {
+  const message = error instanceof Error ? error.message : String(error);
+  return /\bdrm\b|contentprotection/i.test(message);
+}
 
 /**
  * A sniffed HLS/DASH manifest is one request, but it can declare several qualities, of which the
- * player fetches one. The app reads the manifest and the menu lists them all; on any failure the
- * stream keeps its single entry.
+ * player fetches one. The app reads the manifest and the menu lists them all; ordinary probe
+ * failures keep the single entry, while a confirmed DRM manifest is omitted.
  */
-async function expandStream(m: MediaItem, group: VideoOption['group'], pageUrl: string, incognito: boolean): Promise<VideoOption[]> {
+async function expandStream(m: MediaItem, group: VideoOption['group'], pageUrl: string, incognito: boolean): Promise<ExpandedStream> {
   const base = option(m, group);
-  if (m.kind !== 'hls' && m.kind !== 'dash') return [base];
+  if (m.kind !== 'hls' && m.kind !== 'dash') return { options: [base], checked: true, drmProtected: false };
   try {
     const reply = await native.request(
       {
@@ -57,11 +69,31 @@ async function expandStream(m: MediaItem, group: VideoOption['group'], pageUrl: 
       },
       { timeoutMs: EXPAND_TIMEOUT_MS },
     );
-    return variantOptions(base, m.kind, reply.variants ?? []) ?? [base];
-  } catch {
-    // Timeout, an older app without probeStream, or a manifest the app declined (live, DRM).
-    return [base];
+    return { options: variantOptions(base, m.kind, reply.variants ?? []) ?? [base], checked: true, drmProtected: false };
+  } catch (error) {
+    // Keep DRM and unreadable manifests out of the picker; a timeout cannot confirm safety.
+    return isDrmError(error)
+      ? { options: [], checked: true, drmProtected: true }
+      : { options: [], checked: false, drmProtected: false };
   }
+}
+
+/** Checks the page's sniffed HLS/DASH resources before the popup offers download actions. */
+export async function scanMediaProtection(tabId: number): Promise<MediaProtectionResult[]> {
+  const [tab, media] = await Promise.all([tabInfo(tabId), getTabMedia(tabId)]);
+  const manifests = visibleMedia(media).filter((m) => m.kind === 'hls' || m.kind === 'dash').slice(0, POPUP_PROTECTION_SCAN_MAX);
+  const pageUrl = tab?.url ?? manifests.find((m) => m.frameUrl)?.frameUrl ?? '';
+  const incognito = !!tab?.incognito;
+  const out: MediaProtectionResult[] = [];
+  for (let i = 0; i < manifests.length; i += EXPAND_MAX) {
+    const group = manifests.slice(i, i + EXPAND_MAX);
+    const results = await Promise.all(group.map(async (m) => {
+      const result = await expandStream(m, 'stream', pageUrl || m.frameUrl || '', incognito);
+      return { key: m.key, checked: result.checked, drmProtected: result.drmProtected };
+    }));
+    out.push(...results);
+  }
+  return out;
 }
 
 function noticeFor(err: NativeError): string {
@@ -109,6 +141,16 @@ export async function videoOptions(
         { type: 'probeVideo', pageUrl, cookies: await cookieHeaderFor(pageUrl, !!tab?.incognito), userAgent: userAgent() },
         { timeoutMs: 60_000 },
       );
+      if (reply.hasDrm) {
+        return {
+          source: 'probe',
+          pageUrl,
+          ...(reply.title ? { title: reply.title } : {}),
+          options: [],
+          drmProtected: true,
+          notice: 'This video is DRM-protected. Download options are unavailable.',
+        };
+      }
       const options: VideoOption[] = (reply.formats ?? []).map((f) => ({
         id: `fmt:${f.id}`,
         label: f.label,
@@ -130,11 +172,29 @@ export async function videoOptions(
   const rest = media.filter((m) => !ownKeys.has(m.key)).sort((a, b) => rank(a) - rank(b) || (b.size ?? 0) - (a.size ?? 0));
   const incognito = !!tab?.incognito;
   let budget = EXPAND_MAX;
-  const entries = (m: MediaItem, group: VideoOption['group']) =>
-    (m.kind === 'hls' || m.kind === 'dash') && budget-- > 0 ? expandStream(m, group, msg.pageUrl, incognito) : Promise.resolve([option(m, group)]);
+  const entries = (m: MediaItem, group: VideoOption['group']) => {
+    if (m.kind !== 'hls' && m.kind !== 'dash') {
+      return Promise.resolve({ options: [option(m, group)], checked: true, drmProtected: false });
+    }
+    return budget-- > 0
+      ? expandStream(m, group, msg.pageUrl, incognito)
+      : Promise.resolve({ options: [], checked: false, drmProtected: false });
+  };
   const expanded = await Promise.all([...own.map((m) => entries(m, 'element')), ...rest.map((m) => entries(m, 'stream'))]);
-  const options = expanded.flat();
-  return { source: 'sniffed', options, ...(notice ? { notice } : {}) };
+  const ownResults = expanded.slice(0, own.length);
+  const elementIsDrm = ownResults.some((r) => r.drmProtected);
+  const elementUnverified = ownResults.length > 0 && ownResults.some((r) => !r.checked)
+    && !ownResults.some((r) => r.checked && !r.drmProtected && r.options.length > 0);
+  const options = elementIsDrm || elementUnverified ? [] : expanded.flatMap((r) => r.options);
+  const drmProtected = elementIsDrm || (options.length === 0 && expanded.some((r) => r.drmProtected));
+  const protectionUnverified = !drmProtected && (elementUnverified || (options.length === 0 && expanded.some((r) => !r.checked)));
+  return {
+    source: 'sniffed',
+    options,
+    ...(drmProtected ? { drmProtected: true, notice: 'This video is DRM-protected. Download options are unavailable.' } : {}),
+    ...(protectionUnverified ? { protectionUnverified: true, notice: "xr11 couldn't check this stream's protection, so its download button is hidden." } : {}),
+    ...(!drmProtected && !protectionUnverified && notice ? { notice } : {}),
+  };
 }
 
 export async function sendVideo(pageUrl: string, title: string, option: VideoOption, tab: chrome.tabs.Tab | undefined): Promise<void> {

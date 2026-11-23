@@ -1113,5 +1113,7 @@
   "Streams detected on the page": "Streams detected on the page",
   "Could not add the stream": "Could not add the stream",
   "Stream added": "Stream added",
-  "Search model repositories by name": "Search model repositories by name"
+  "Search model repositories by name": "Search model repositories by name",
+  "This video is protected with DRM.": "This video is protected with DRM.",
+  "XR11 can't download DRM-protected videos. Check the streaming service's app for an official offline download option.": "XR11 can't download DRM-protected videos. Check the streaming service's app for an official offline download option."
 }

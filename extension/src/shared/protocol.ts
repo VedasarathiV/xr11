@@ -207,6 +207,7 @@ export interface ProbeVideoReply extends OkReply {
   title?: string;
   thumbnail?: string;
   duration?: number;
+  hasDrm?: boolean;
   formats: VideoFormat[];
 }
 

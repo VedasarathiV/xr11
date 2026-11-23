@@ -1901,6 +1901,7 @@ fn video_formats_reply(probe: &serde_json::Value) -> serde_json::Value {
         "title": probe.get("title"),
         "thumbnail": probe.get("thumbnail"),
         "duration": probe.get("duration"),
+        "hasDrm": probe.get("hasDrm").and_then(serde_json::Value::as_bool).unwrap_or(false),
         "formats": formats,
     })
 }

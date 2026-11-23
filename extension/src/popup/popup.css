@@ -33,6 +33,8 @@ main { padding: 12px; display: flex; flex-direction: column; gap: 10px; }
 .media .name { display: block; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .media .meta { display: block; font-size: 11px; color: var(--text-2); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .media .btn { height: 28px; padding: 0 10px; font-size: 12px; }
+.media .state { max-width: 120px; font-size: 10.5px; color: var(--text-2); text-align: right; }
+.media .state--blocked { color: var(--bad); }
 .empty { padding: 14px 10px 16px; text-align: center; color: var(--text-2); font-size: 12px; }
 .empty b { display: block; color: var(--text); margin-bottom: 2px; }
 .grab { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; }

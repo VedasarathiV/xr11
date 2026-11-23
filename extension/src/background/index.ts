@@ -17,7 +17,7 @@ import { native } from './native';
 import { initRequestTracking } from './requests';
 import { getTabMedia, initSniffer } from './sniffer';
 import { applyAppSettings, getConnection, getState, markConnected, markFailure, onConnectionChange, updateState } from './state';
-import { downloadMedia, sendVideo, videoOptions } from './video';
+import { downloadMedia, scanMediaProtection, sendVideo, videoOptions } from './video';
 
 // ---- wiring -------------------------------------------------------------------
 
@@ -88,6 +88,8 @@ async function handle(msg: InternalMessage, sender: chrome.runtime.MessageSender
     case 'videoDownload':
       await sendVideo(msg.pageUrl, msg.title, msg.option, sender.tab);
       return { ok: true } satisfies ActionResult;
+    case 'scanMediaProtection':
+      return scanMediaProtection(msg.tabId);
     case 'popupState': {
       const [state, media, tab] = await Promise.all([getState(), getTabMedia(msg.tabId), tabInfo(msg.tabId)]);
       const visible = visibleMedia(media);

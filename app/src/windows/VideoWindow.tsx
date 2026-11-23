@@ -145,6 +145,7 @@ export default function VideoWindow({ id }: { id: string }) {
 
   const choices = probe?.kind === "video" ? probe.choices : PLAYLIST_CHOICES;
   const { video, mp3 } = useMemo(() => splitChoices(choices), [choices]);
+  const drmProtected = probe?.kind === "video" && probe.hasDrm;
   const picked = format === "mp3" ? mp3 : video.find((c) => c.id === choice) ?? video[0];
   const subLangs = useMemo(() => (probe?.kind === "video" ? Object.keys(probe.subtitles ?? {}) : []), [probe]);
   const named = (probe?.kind === "video" ? probe.title : probe?.kind === "playlist" ? probe.title : null) ?? cap?.title;
@@ -159,7 +160,7 @@ export default function VideoWindow({ id }: { id: string }) {
   const info = probe?.kind === "video" ? probe : null;
   const live = !!info && (info.isLive || ["is_live", "is_upcoming", "post_live"].includes(info.liveStatus ?? ""));
   const total = info?.duration && !live ? timelineLength(info.duration) : 0;
-  const canCut = total > MIN_PART;
+  const canCut = !drmProtected && total > MIN_PART;
   const chapters = useMemo(() => (info?.chapters ?? []).filter((c) => c.end > c.start), [info]);
   const cutting = canCut && extent === "part" && range != null;
   // Everything selected is the whole video: a normal download.
@@ -180,7 +181,7 @@ export default function VideoWindow({ id }: { id: string }) {
   }, [cutting, picked?.id, probe]);
 
   const confirm = async (mode: StartMode) => {
-    if (!cap || !picked) return;
+    if (!cap || !picked || drmProtected) return;
     setBusy(true);
     const n = await attempt(
       api.confirmVideo({
@@ -254,6 +255,15 @@ export default function VideoWindow({ id }: { id: string }) {
             </div>
           </div>
         )}
+        {drmProtected && (
+          <div className="banner banner--warn">
+            <Icon name="warning" size={16} />
+            <div>
+              <b>{t("This video is protected with DRM.")}</b>
+              <div className="t-small">{t("XR11 can't download DRM-protected videos. Check the streaming service's app for an official offline download option.")}</div>
+            </div>
+          </div>
+        )}
 
         {probe?.kind === "playlist" && <Playlist entries={probe.entries} checked={entries} onChange={setEntries} />}
         {probe?.kind === "playlist" && (
@@ -264,7 +274,7 @@ export default function VideoWindow({ id }: { id: string }) {
           </div>
         )}
 
-        {probe && (
+        {probe && !drmProtected && (
           <div className="vformat">
             <Segmented<Format>
               label={t("Format")}
@@ -290,7 +300,7 @@ export default function VideoWindow({ id }: { id: string }) {
         )}
         {cutting && <PartPicker total={total} chapters={chapters} value={range} onChange={setRange} size={partSize(picked?.estSize, range, info?.duration ?? total)} />}
 
-        {probe && format === "mp4" && (
+        {probe && !drmProtected && format === "mp4" && (
           <div ref={qualities} className={`choices${cutting && video.length > 2 ? " choices--shrink" : ""}`} role="radiogroup" aria-label={t("Quality")}>
             <div className="qsec">{probe.kind === "playlist" ? t("Quality for every video") : t("Quality")}</div>
             {video.map((c) => (
@@ -298,14 +308,14 @@ export default function VideoWindow({ id }: { id: string }) {
             ))}
           </div>
         )}
-        {probe && format === "mp3" && mp3 && (
+        {probe && !drmProtected && format === "mp3" && mp3 && (
           <div className="choices" role="radiogroup" aria-label={t("Audio")}>
             <div className="qsec">{t("Audio only")}</div>
             <ChoiceRow c={{ ...mp3, label: "MP3", subLabel: `320 kbps${mp3.estSize ? ` · ~${formatBytes(mp3.estSize)}` : ""}` }} on onPick={() => undefined} />
           </div>
         )}
 
-        {probe && (
+        {probe && !drmProtected && (
           <div className="vopts">
             {probe.kind === "video" && (
               <div className="vopt">
@@ -334,7 +344,7 @@ export default function VideoWindow({ id }: { id: string }) {
           </div>
         )}
 
-        {probe && more && (
+        {probe && !drmProtected && more && (
           <div className="vopts">
             {section && (
               <div className="vopt vopt--note">
@@ -386,43 +396,47 @@ export default function VideoWindow({ id }: { id: string }) {
           </div>
         )}
 
-        {cap && cap.streams.length > 0 && <Streams streams={cap.streams} pageUrl={cap.pageUrl} title={title} />}
+        {cap && cap.streams.length > 0 && !drmProtected && <Streams streams={cap.streams} pageUrl={cap.pageUrl} title={title} />}
       </div>
       <footer className="dialog__footer">
         <button type="button" className="btn btn--ghost" onClick={cancel}>
           {t("Cancel")}
         </button>
         <span className="spacer" />
-        <div className="split">
-          <button type="button" className="btn" disabled={!picked || busy} onClick={() => confirm({ type: "later" })}>
-            {t("Later")}
-          </button>
-          <button
-            type="button"
-            className="btn"
-            aria-label={t("Add to queue")}
-            disabled={!picked || busy}
-            onClick={(e) => openMenuAt(e.currentTarget, [{ heading: t("Add to queue") }, ...useApp.getState().queues.map((q) => ({ label: displayName(q.name), icon: "queue" as const, onSelect: () => void confirm({ type: "queue", queueId: q.id }) }))])}
-          >
-            <Icon name="chevron-down" size={13} strokeWidth={2.2} />
-          </button>
-        </div>
-        <button type="button" className="btn btn--primary" disabled={!picked || busy || (probe?.kind === "playlist" && !entries.size)} onClick={() => confirm({ type: "now" })}>
-          <Icon name="download" size={15} />
-          {probe?.kind === "playlist"
-            ? format === "mp3"
-              ? t("Download {number} as MP3", { number: entries.size })
-              : t("Download {count} videos", { count: entries.size })
-            : section
-              ? format === "mp3"
-                ? t("Download {range} · {format}", { range: ltr(formatRange(section)), format: "MP3" })
-                : t("Download {range} · {quality} {format}", { range: ltr(formatRange(section)), quality: quality(picked), format: containerName })
-              : format === "mp3"
-                ? t("Download MP3")
-                : picked
-                  ? t("Download {quality} {format}", { quality: quality(picked), format: containerName })
-                  : t("Download")}
-        </button>
+        {!drmProtected && (
+          <>
+            <div className="split">
+              <button type="button" className="btn" disabled={!picked || busy} onClick={() => confirm({ type: "later" })}>
+                {t("Later")}
+              </button>
+              <button
+                type="button"
+                className="btn"
+                aria-label={t("Add to queue")}
+                disabled={!picked || busy}
+                onClick={(e) => openMenuAt(e.currentTarget, [{ heading: t("Add to queue") }, ...useApp.getState().queues.map((q) => ({ label: displayName(q.name), icon: "queue" as const, onSelect: () => void confirm({ type: "queue", queueId: q.id }) }))])}
+              >
+                <Icon name="chevron-down" size={13} strokeWidth={2.2} />
+              </button>
+            </div>
+            <button type="button" className="btn btn--primary" disabled={!picked || busy || (probe?.kind === "playlist" && !entries.size)} onClick={() => confirm({ type: "now" })}>
+              <Icon name="download" size={15} />
+              {probe?.kind === "playlist"
+                ? format === "mp3"
+                  ? t("Download {number} as MP3", { number: entries.size })
+                  : t("Download {count} videos", { count: entries.size })
+                : section
+                  ? format === "mp3"
+                    ? t("Download {range} · {format}", { range: ltr(formatRange(section)), format: "MP3" })
+                    : t("Download {range} · {quality} {format}", { range: ltr(formatRange(section)), quality: quality(picked), format: containerName })
+                  : format === "mp3"
+                    ? t("Download MP3")
+                    : picked
+                      ? t("Download {quality} {format}", { quality: quality(picked), format: containerName })
+                      : t("Download")}
+            </button>
+          </>
+        )}
       </footer>
     </WindowFrame>
   );

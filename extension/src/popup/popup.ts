@@ -1,13 +1,17 @@
 import { api, sendInternal } from '../shared/api';
 import { icons, xr11Mark } from '../shared/icons';
 import { type MediaItem, humanSize } from '../shared/media';
-import type { ActionResult, ConnectionInfo, PopupState } from '../shared/messages';
+import type { ActionResult, ConnectionInfo, MediaProtectionResult, PopupState } from '../shared/messages';
 import type { BatchKind } from '../shared/protocol';
 
 const app = document.getElementById('app')!;
 let tabId = -1;
 let state: PopupState | null = null;
 let busy = false;
+let protectionScan = 0;
+let protectionPending = false;
+let checkedStreams = new Set<string>();
+let protectedStreams = new Set<string>();
 
 function esc(s: string): string {
   return s.replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]!);
@@ -62,6 +66,16 @@ function mediaMeta(m: MediaItem): string {
   return [kind, m.quality, humanSize(m.size)].filter(Boolean).join(' · ');
 }
 
+function mediaAction(m: MediaItem): string {
+  if (m.kind !== 'hls' && m.kind !== 'dash') {
+    return `<button class="btn" data-act="media" data-key="${esc(m.key)}">${icons.download(14)}Download</button>`;
+  }
+  if (protectionPending) return `<span class="state">Checking protection…</span>`;
+  if (protectedStreams.has(m.key)) return `<span class="state state--blocked">DRM protected</span>`;
+  if (!checkedStreams.has(m.key)) return `<span class="state">Protection not confirmed</span>`;
+  return `<button class="btn" data-act="media" data-key="${esc(m.key)}">${icons.download(14)}Download</button>`;
+}
+
 function render(): void {
   if (!state) return;
   const { connection, media, state: st } = state;
@@ -90,7 +104,7 @@ function render(): void {
                 (m) => `<div class="media" data-key="${esc(m.key)}">
                   <span class="kind">${kindIcon(m)}</span>
                   <span class="tx"><span class="name" title="${esc(m.url)}">${esc(m.name)}</span><span class="meta">${esc(mediaMeta(m))}</span></span>
-                  <button class="btn" data-act="media" data-key="${esc(m.key)}">${icons.download(14)}Download</button>
+                  ${mediaAction(m)}
                 </div>`,
               )
               .join('')
@@ -113,6 +127,19 @@ async function load(): Promise<void> {
   const s = await sendInternal<PopupState>({ kind: 'popupState', tabId });
   if (s) {
     state = s;
+    const scanId = ++protectionScan;
+    checkedStreams = new Set();
+    protectedStreams = new Set();
+    protectionPending = s.media.some((m) => m.kind === 'hls' || m.kind === 'dash');
+    render();
+    if (!protectionPending) return;
+    const result = await sendInternal<MediaProtectionResult[]>({ kind: 'scanMediaProtection', tabId });
+    if (scanId !== protectionScan) return;
+    if (Array.isArray(result)) {
+      checkedStreams = new Set(result.filter((r) => r.checked).map((r) => r.key));
+      protectedStreams = new Set(result.filter((r) => r.drmProtected).map((r) => r.key));
+    }
+    protectionPending = false;
     render();
   }
 }
