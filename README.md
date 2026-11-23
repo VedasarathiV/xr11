@@ -6,7 +6,8 @@
 
 <p align="center">
   <b>Every download, ruled.</b><br>
-  A fast, beautiful, open-source download manager for Windows, macOS and Linux.
+  A fast, open-source download manager for Windows, macOS and Linux, with browser capture,
+  video downloads, torrents, queues, and AI model file downloads.
 </p>
 
 <p align="center">
@@ -58,11 +59,18 @@ macOS Application Support folder, so the app does not need the source project fo
 
 ## Project layout
 
-- `app/` — React interface and Tauri desktop shell.
-- `crates/` — Rust download engine, model catalog integration, browser host, video and torrent support.
-- `extension/` — Chromium and Firefox browser extension source and tests.
-- `assets/`, `packaging/`, `scripts/` — app artwork and platform build/packaging tools.
-- `docs/` — build, release and user guides. `release/` contains the current macOS app and disk image.
+- `app/` — React desktop interface and Tauri application shell.
+- `crates/` — Rust download engine, app services, browser messaging host, video and torrent backends, and local test server.
+- `extension/` — Chromium and Firefox browser integration source, build scripts, and tests.
+- `assets/` — xr11 brand artwork, icons, and generated image assets.
+- `packaging/` — platform-specific installer and application packaging configuration.
+- `scripts/` — build, release, smoke-check, and maintenance utilities.
+- `site/` — public product website and platform/feature pages, published with GitHub Pages.
+- `docs/` — architecture, build, release, user, and project documentation.
+- `release/` — release instructions and locally generated release artifacts; generated binaries are not source files.
+- `docs/PROJECTS.md` — plain-language descriptions of the app, crates, extension, website, and supporting folders.
+
+The Pages workflow requires GitHub Pages to be enabled with **Settings → Pages → Build and deployment → Source: GitHub Actions**. See [docs/PUBLISHING.md](docs/PUBLISHING.md).
 
 Frontend checks:
 

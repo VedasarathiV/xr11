@@ -4,7 +4,7 @@ version.workspace = true
 edition.workspace = true
 license.workspace = true
 rust-version.workspace = true
-description = "xr11 Download Manager"
+description = "Cross-platform xr11 download manager desktop application and native browser integration host."
 default-run = "xr11"
 
 [[bin]]

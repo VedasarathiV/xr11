@@ -1,5 +1,6 @@
 {
   "name": "xr11-app",
+  "description": "Cross-platform xr11 download manager desktop app with browser integration, media downloads, queues, and model-file downloads.",
   "private": true,
   "version": "2.0.0",
   "type": "module",
