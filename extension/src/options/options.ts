@@ -1,5 +1,5 @@
 import { api, sendInternal } from '../shared/api';
-import { prismMark } from '../shared/icons';
+import { xr11Mark } from '../shared/icons';
 import type { CaptureSettings } from '../shared/protocol';
 import { DEFAULT_SETTINGS, STATE_KEY, type StoredState, normalizeState } from '../shared/settings';
 
@@ -7,7 +7,7 @@ const $ = <T extends HTMLElement>(id: string) => document.getElementById(id) as 
 const form = $<HTMLFormElement>('form');
 const status = $<HTMLSpanElement>('status');
 
-$('mark').innerHTML = prismMark(40);
+$('mark').innerHTML = xr11Mark(52);
 
 function setStatus(text: string, kind: '' | 'ok' | 'bad' = ''): void {
   status.textContent = text;

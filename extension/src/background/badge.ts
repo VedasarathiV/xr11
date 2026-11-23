@@ -8,7 +8,7 @@ export function setTabCount(tabId: number, count: number): void {
   if (tabId < 0) return;
   const text = count > 0 ? (count > 99 ? '99+' : String(count)) : null;
   action.setBadgeText({ tabId, text: text as string }).catch(() => {});
-  if (text) action.setBadgeBackgroundColor({ tabId, color: '#5b6cff' }).catch(() => {});
+  if (text) action.setBadgeBackgroundColor({ tabId, color: '#0a84ff' }).catch(() => {});
 }
 
 /** Global badge: "!" while the app/host is unreachable after a failed hand-off. */

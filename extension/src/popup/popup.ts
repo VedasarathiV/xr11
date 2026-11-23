@@ -1,5 +1,5 @@
 import { api, sendInternal } from '../shared/api';
-import { icons, prismMark } from '../shared/icons';
+import { icons, xr11Mark } from '../shared/icons';
 import { type MediaItem, humanSize } from '../shared/media';
 import type { ActionResult, ConnectionInfo, PopupState } from '../shared/messages';
 import type { BatchKind } from '../shared/protocol';
@@ -68,7 +68,7 @@ function render(): void {
   const capturing = st.settings.captureEnabled && !st.paused;
   app.innerHTML = `
     <header class="top">
-      <span class="tile">${prismMark(24)}</span>
+      <span class="tile">${xr11Mark(30)}</span>
       <div class="brand"><b>xr11</b><span class="muted">Download manager</span></div>
       ${chip(connection)}
     </header>
@@ -103,7 +103,7 @@ function render(): void {
       <button class="btn" data-act="collect" data-mode="videos">${icons.film(18)}All videos</button>
     </section>
     <footer class="foot">
-      <button class="btn ghost" data-act="open">${prismMark(16)}Open xr11</button>
+      <button class="btn ghost" data-act="open">${xr11Mark(18)}Open xr11</button>
       <span class="spacer"></span>
       <button class="btn ghost icon" data-act="options" title="Options" aria-label="Options">${icons.gear(16)}</button>
     </footer>`;

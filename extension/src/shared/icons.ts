@@ -1,16 +1,9 @@
 /** Inline SVG icons (drawn for xr11; no third-party icon sets). */
 
-let gradSeq = 0;
-
-/** The xr11 crest: a crown over a download arrow inside a shield. */
-export function prismMark(size = 18): string {
-  const g = `xr11-g${++gradSeq}`;
-  return `<svg class="prism-mark" width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-<defs><linearGradient id="${g}" x1="4" y1="3" x2="20" y2="21" gradientUnits="userSpaceOnUse">
-<stop offset="0" stop-color="#d8e6f5"/><stop offset=".5" stop-color="#9dbcdd"/><stop offset="1" stop-color="#5f86ad"/></linearGradient></defs>
-<path d="M12 1.8 21 5v6.2c0 5-3.5 8.8-9 11-5.5-2.2-9-6-9-11V5Z" fill="#fff" fill-opacity=".05" stroke="url(#${g})" stroke-width="1.6" stroke-linejoin="round"/>
-<path d="M6.8 12.4V8.2l2.7 1.7L12 6.1l2.5 3.8 2.7-1.7v4.2Z" fill="url(#${g})"/>
-<path d="M12 13.5v4.1M9.8 15.6 12 17.8l2.2-2.2" stroke="url(#${g})" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/>
+/** The xr11 wordmark, matching assets/brand/logo-mark.svg. */
+export function xr11Mark(size = 18): string {
+  return `<svg class="xr11-mark" width="${size}" height="${size}" viewBox="0 0 64 64" fill="none" aria-hidden="true">
+<text x="50%" y="43" text-anchor="middle" font-family="SF Pro Rounded, SF Pro Display, -apple-system, BlinkMacSystemFont, system-ui, sans-serif" font-size="29" font-weight="700" letter-spacing="-1.4"><tspan fill="#62d0ff">x</tspan><tspan fill="#f5f6fb">r</tspan><tspan fill="#ffb454">11</tspan></text>
 </svg>`;
 }
 

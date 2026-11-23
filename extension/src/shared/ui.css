@@ -3,9 +3,9 @@
   color-scheme: light dark;
   --font: ui-sans-serif, system-ui, -apple-system, "Segoe UI Variable Text", "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
   --bg: #eef1f8;
-  --bg-grad-a: rgba(126, 146, 255, .30);
-  --bg-grad-b: rgba(255, 128, 191, .20);
-  --bg-grad-c: rgba(84, 222, 190, .18);
+  --bg-grad-a: rgba(98, 208, 255, .27);
+  --bg-grad-b: rgba(255, 180, 84, .16);
+  --bg-grad-c: rgba(94, 156, 230, .14);
   --glass: rgba(255, 255, 255, .62);
   --glass-strong: rgba(255, 255, 255, .80);
   --glass-border: rgba(255, 255, 255, .85);
@@ -14,8 +14,8 @@
   --text: #141824;
   --text-2: #586079;
   --text-3: #8a91a8;
-  --accent: #5b6cff;
-  --accent-2: #8b5bff;
+  --accent: #0a84ff;
+  --accent-2: #62d0ff;
   --accent-text: #fff;
   --ok: #18a46b;
   --bad: #e5484d;
@@ -28,9 +28,9 @@
 @media (prefers-color-scheme: dark) {
   :root {
     --bg: #0d0f16;
-    --bg-grad-a: rgba(94, 110, 255, .28);
-    --bg-grad-b: rgba(190, 80, 255, .16);
-    --bg-grad-c: rgba(40, 200, 170, .12);
+    --bg-grad-a: rgba(98, 208, 255, .22);
+    --bg-grad-b: rgba(255, 180, 84, .13);
+    --bg-grad-c: rgba(94, 156, 230, .10);
     --glass: rgba(30, 34, 48, .58);
     --glass-strong: rgba(36, 40, 56, .78);
     --glass-border: rgba(255, 255, 255, .10);
@@ -39,8 +39,8 @@
     --text: #eef1fa;
     --text-2: #a9b0c6;
     --text-3: #727a93;
-    --accent: #7b8bff;
-    --accent-2: #a77bff;
+    --accent: #62d0ff;
+    --accent-2: #ffb454;
     --ok: #3ddc97;
     --bad: #ff6b72;
     --warn: #ffb547;
